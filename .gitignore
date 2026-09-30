@@ -1,0 +1,14 @@
+node_modules/
+.project_id
+.github_repo
+.env
+.env.*
+.vercel/
+.grok/
+.output/
+dist/
+screenshots/
+artifacts/
+*.log
+.DS_Store
+public/FashionGram-source.zip
