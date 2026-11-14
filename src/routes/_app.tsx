@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { AppShell } from "@/components/app-shell";
@@ -11,10 +12,13 @@ export const Route = createFileRoute("/_app")({
 
 function GuardedShell() {
   const { user, isPending } = useCurrentUserState();
+  const qc = useQueryClient();
 
+  // First-visit setup seeds the starter closet and follows. Queries that ran
+  // before it finished cached empty results, so refetch them once it resolves.
   useEffect(() => {
-    if (user) void ensureProfile();
-  }, [user]);
+    if (user) void ensureProfile().then(() => qc.invalidateQueries());
+  }, [user, qc]);
 
   if (isPending) {
     return (
