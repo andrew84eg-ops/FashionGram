@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { addItem, closetInsights, listMyItems } from "@/lib/server/fashion";
+import { addItem, listMyItems } from "@/lib/server/fashion";
 import { BRANDS, CATEGORIES, COLORS, SEASONS } from "@/lib/fashion";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
@@ -45,18 +45,27 @@ function AddPage() {
     setImageUrl(url);
   }
 
-  async function onColor(next: string) {
-    setColor(next);
-    const items = (await qc.fetchQuery({ queryKey: ["my-items"], queryFn: () => listMyItems() })) ?? [];
-    const insights = await qc.fetchQuery({ queryKey: ["insights"], queryFn: () => closetInsights() });
-    if ((next === "ivory" || next === "white") && category === "top" && insights.whiteTops >= 1) {
-      const names = items
-        .filter((i) => i.category === "top" && (i.color === "ivory" || i.color === "white"))
-        .map((i) => i.title);
-      setDupWarn(`You already have ${names.join(", ") || "a white top"} in the closet.`);
-    } else {
+  // The duplicate warning depends on category AND colour, so derive it whenever
+  // either one changes — not only when a colour is clicked.
+  useEffect(() => {
+    const isWhite = (c: string) => c === "ivory" || c === "white";
+    if (category !== "top" || !isWhite(color)) {
       setDupWarn(null);
+      return;
     }
+    let cancelled = false;
+    void (async () => {
+      const items = (await qc.fetchQuery({ queryKey: ["my-items"], queryFn: () => listMyItems() })) ?? [];
+      const names = items.filter((i) => i.category === "top" && isWhite(i.color)).map((i) => i.title);
+      if (!cancelled) setDupWarn(names.length ? `You already have ${names.join(", ")} in the closet.` : null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [category, color, qc]);
+
+  function onColor(next: string) {
+    setColor(next);
   }
 
   async function onSubmit(e: FormEvent) {
