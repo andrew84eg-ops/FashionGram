@@ -26,6 +26,10 @@ export const COLORS = [
   { id: "grey", label: "Grey", hex: "#8A827A" },
 ] as const;
 
+/** One rule for "white-ish" colours, shared by closet insights and the add-item warning. */
+export const WHITEISH_COLORS: readonly string[] = ["ivory", "white", "cream"];
+export const isWhiteish = (color: string) => WHITEISH_COLORS.includes(color);
+
 export const SEASONS = [
   { id: "all", label: "All year" },
   { id: "spring", label: "Spring" },

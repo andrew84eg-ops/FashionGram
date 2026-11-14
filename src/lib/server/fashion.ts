@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getSql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
-import { STARTER_CLOSET, type Item, type Outfit, type Profile, type ShopProduct } from "@/lib/fashion";
+import { STARTER_CLOSET, isWhiteish, type Item, type Outfit, type Profile, type ShopProduct } from "@/lib/fashion";
 import { z } from "zod";
 
 type ItemRow = {
@@ -652,7 +652,7 @@ export const closetInsights = createServerFn({ method: "GET" })
       byColor[r.color] = (byColor[r.color] ?? 0) + r.n;
     }
     const whiteTops = rows
-      .filter((r) => r.category === "top" && (r.color === "ivory" || r.color === "white" || r.color === "cream"))
+      .filter((r) => r.category === "top" && isWhiteish(r.color))
       .reduce((a, r) => a + r.n, 0);
     const gaps = ["shoes", "outerwear", "bag", "dress", "bottom", "top"].filter((c) => !byCategory[c]);
     return { byCategory, byColor, whiteTops, total: rows.reduce((a, r) => a + r.n, 0), gaps };

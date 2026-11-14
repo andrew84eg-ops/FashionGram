@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { addItem, listMyItems } from "@/lib/server/fashion";
-import { BRANDS, CATEGORIES, COLORS, SEASONS } from "@/lib/fashion";
+import { BRANDS, CATEGORIES, COLORS, SEASONS, isWhiteish } from "@/lib/fashion";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -48,15 +48,14 @@ function AddPage() {
   // The duplicate warning depends on category AND colour, so derive it whenever
   // either one changes — not only when a colour is clicked.
   useEffect(() => {
-    const isWhite = (c: string) => c === "ivory" || c === "white";
-    if (category !== "top" || !isWhite(color)) {
+    if (category !== "top" || !isWhiteish(color)) {
       setDupWarn(null);
       return;
     }
     let cancelled = false;
     void (async () => {
       const items = (await qc.fetchQuery({ queryKey: ["my-items"], queryFn: () => listMyItems() })) ?? [];
-      const names = items.filter((i) => i.category === "top" && isWhite(i.color)).map((i) => i.title);
+      const names = items.filter((i) => i.category === "top" && isWhiteish(i.color)).map((i) => i.title);
       if (!cancelled) setDupWarn(names.length ? `You already have ${names.join(", ")} in the closet.` : null);
     })();
     return () => {
